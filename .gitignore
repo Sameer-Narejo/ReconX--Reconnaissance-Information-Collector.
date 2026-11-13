@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+reconx.db
+generated_reports/
+.env
+.vscode/

@@ -1,0 +1,68 @@
+/* ReconX custom styles.
+   Bootstrap does most of the work. This file holds only our own extras. */
+
+/* Light grey page background so the white cards stand out. */
+body {
+    background-color: #f4f6f9;
+}
+
+/* The brand name in the navigation bar. */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Keep the home page form at a comfortable reading width. */
+.scan-box {
+    max-width: 640px;
+}
+
+/* Footer text is small and grey. */
+.site-footer {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+/* ---------- Dashboard (Phase 8, Task 2) ---------- */
+
+/* Card titles a little bolder. */
+.card-header {
+    font-weight: 600;
+}
+
+/* The big numbers in the four summary cards. */
+.summary-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0d6efd;
+}
+
+/* Long values (TXT records, header values) wrap instead of
+   stretching the table off the screen. */
+.wrap-text {
+    word-break: break-word;
+}
+
+/* A little space between the card edge and the first table column. */
+.card .table th:first-child,
+.card .table td:first-child {
+    padding-left: 1rem;
+}
+
+/* ---------- Phase 8, Task 3 ---------- */
+
+/* Smooth scrolling when a jump link is clicked. */
+html {
+    scroll-behavior: smooth;
+}
+
+/* The row of jump links on the dashboard. */
+.section-nav .nav-link {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+/* Keep the filter box from stretching across the whole card. */
+.subdomain-filter {
+    max-width: 320px;
+}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}ReconX - New scan{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm scan-box mx-auto">
+    <div class="card-body p-4">
+        <h1 class="h3 card-title">New scan</h1>
+        <p class="text-muted">Collect publicly available information about a domain.</p>
+
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <strong>Could not scan:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        <form id="scan-form" method="post" action="{{ url_for('start_scan') }}">
+            <div class="mb-3">
+                <label for="domain" class="form-label">Domain</label>
+                <input type="text" class="form-control" id="domain" name="domain"
+                       value="{{ domain }}" placeholder="example.com"
+                       maxlength="253" required>
+            </div>
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="authorized"
+                       name="authorized" value="yes" required>
+                <label for="authorized" class="form-check-label">
+                    I own this domain or have explicit permission to assess it.
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary" id="scan-button">
+                <span class="spinner-border spinner-border-sm d-none" id="scan-spinner" aria-hidden="true"></span>
+                <span id="scan-button-text">Start scan</span>
+            </button>
+        </form>
+
+        <p class="form-text mt-3 mb-0">A scan can take up to a minute. Please wait after clicking the button.</p>
+    </div>
+</div>
+{% endblock %}

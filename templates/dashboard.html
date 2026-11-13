@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}ReconX - {{ scan["domain"] }}{% endblock %}
+
+{% block content %}
+{# Which Bootstrap colour goes with which word. #}
+{% set status_colors = {"ok": "bg-success", "weak": "bg-warning text-dark", "missing": "bg-danger"} %}
+{% set confidence_colors = {"reported": "bg-primary", "suspected": "bg-secondary"} %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">{{ scan["domain"] }}</h1>
+        <p class="text-muted mb-0">Scan #{{ scan["id"] }}, {{ scan["scan_date"] }} UTC</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary btn-sm" href="{{ url_for('download_report', scan_id=scan['id']) }}">Download PDF report</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('history') }}">Back to history</a>
+    </div>
+</div>
+
+{# ---------- Jump links to each section ---------- #}
+<nav class="nav nav-pills section-nav mb-3">
+    <a class="nav-link" href="#ips">IP addresses</a>
+    <a class="nav-link" href="#whois">WHOIS</a>
+    <a class="nav-link" href="#security">Security</a>
+    <a class="nav-link" href="#technologies">Technologies</a>
+    <a class="nav-link" href="#dns">DNS</a>
+    <a class="nav-link" href="#subdomains">Subdomains</a>
+</nav>
+
+{# ---------- Summary: four small number cards ---------- #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center summary-card">
+            <div class="card-body">
+                <div class="summary-number">{{ scan["ip_addresses"]|length }}</div>
+                <div class="text-muted">IP addresses</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center summary-card">
+            <div class="card-body">
+                <div class="summary-number">{{ scan["dns_records"]|length }}</div>
+                <div class="text-muted">DNS records</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center summary-card">
+            <div class="card-body">
+                <div class="summary-number">{{ scan["subdomains"]|length }}</div>
+                <div class="text-muted">Subdomains</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm text-center summary-card">
+            <div class="card-body">
+                <div class="summary-number">{{ scan["technologies"]|length }}</div>
+                <div class="text-muted">Technologies</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ---------- IP addresses and WHOIS, side by side on wide screens ---------- #}
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100" id="ips">
+            <div class="card-header">IP addresses</div>
+            {% if scan["ip_addresses"] %}
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Version</th><th>Address</th></tr></thead>
+                    <tbody>
+                        {% for row in scan["ip_addresses"] %}
+                        <tr><td>{{ row["version"] }}</td><td><code>{{ row["address"] }}</code></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card-body text-muted">None saved.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100" id="whois">
+            <div class="card-header">Registration (WHOIS)</div>
+            {% if scan["domain_info"] %}
+            {% set info = scan["domain_info"] %}
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><th>Registrar</th><td>{{ info["registrar"] or "not public" }}</td></tr>
+                        <tr><th>Created on</th><td>{{ info["created_on"] }}</td></tr>
+                        <tr><th>Expires on</th><td>{{ info["expires_on"] }}</td></tr>
+                        {% if info["age_days"] is not none %}
+                        <tr><th>Domain age</th><td>{{ info["age_days"] }} days (about {{ info["age_days"] // 365 }} years)</td></tr>
+                        {% endif %}
+                        {% if info["days_to_expiry"] is not none %}
+                        <tr><th>Days to expiry</th><td>{{ info["days_to_expiry"] }} days</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card-body text-muted">Not available.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# ---------- Security observations ---------- #}
+<div class="card shadow-sm mb-3" id="security">
+    <div class="card-header">Security observations</div>
+    <div class="card-body pb-0">
+        <p class="text-muted small">These are observations, not confirmed vulnerabilities.</p>
+    </div>
+    {% if scan["security_findings"] %}
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Status</th><th>Check</th><th>Detail</th><th>Recommendation</th></tr></thead>
+            <tbody>
+                {% for row in scan["security_findings"] %}
+                <tr>
+                    <td>
+                        <span class="badge {{ status_colors.get(row['status'], 'bg-secondary') }}">
+                            {{ row["status"]|upper }}
+                        </span>
+                    </td>
+                    <td>{{ row["check_name"] }}</td>
+                    <td class="wrap-text">{{ row["detail"] }}</td>
+                    <td>{{ row["recommendation"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">Not checked.</div>
+    {% endif %}
+</div>
+
+{# ---------- Technologies ---------- #}
+<div class="card shadow-sm mb-3" id="technologies">
+    <div class="card-header">Technologies</div>
+    <div class="card-body pb-0">
+        <p class="text-muted small">"reported" = the site says so itself. "suspected" = based on a clue.</p>
+    </div>
+    {% if scan["technologies"] %}
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Confidence</th><th>Category</th><th>Technology</th><th>Evidence</th></tr></thead>
+            <tbody>
+                {% for row in scan["technologies"] %}
+                <tr>
+                    <td>
+                        <span class="badge {{ confidence_colors.get(row['confidence'], 'bg-secondary') }}">
+                            {{ row["confidence"] }}
+                        </span>
+                    </td>
+                    <td>{{ row["category"] }}</td>
+                    <td>{{ row["name"] }}</td>
+                    <td class="wrap-text"><code>{{ row["evidence"] }}</code></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">Nothing detected.</div>
+    {% endif %}
+</div>
+
+{# ---------- DNS records ---------- #}
+<div class="card shadow-sm mb-3" id="dns">
+    <div class="card-header">DNS records</div>
+    {% if scan["dns_records"] %}
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Type</th><th>Value</th></tr></thead>
+            <tbody>
+                {% for row in scan["dns_records"] %}
+                <tr>
+                    <td><span class="badge bg-dark">{{ row["record_type"] }}</span></td>
+                    <td class="wrap-text"><code>{{ row["value"] }}</code></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">None saved.</div>
+    {% endif %}
+</div>
+
+{# ---------- Subdomains ---------- #}
+<div class="card shadow-sm mb-3" id="subdomains">
+    <div class="card-header">Subdomains ({{ scan["subdomains"]|length }})</div>
+    {% if scan["subdomains"] %}
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <input type="text" class="form-control subdomain-filter" id="subdomain-filter"
+               placeholder="Filter subdomains, for example: mail" aria-label="Filter subdomains">
+        <span class="text-muted small" id="subdomain-count">Showing {{ scan["subdomains"]|length }} of {{ scan["subdomains"]|length }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0" id="subdomain-table">
+            <thead><tr><th>Subdomain</th><th>IP addresses</th></tr></thead>
+            <tbody>
+                {% for row in scan["subdomains"] %}
+                <tr>
+                    <td>{{ row["name"] }}</td>
+                    <td>
+                        {% if row["ip_addresses"] is none %}
+                            <span class="text-muted">not checked</span>
+                        {% elif row["ip_addresses"] == "" %}
+                            <span class="text-muted">no address found</span>
+                        {% else %}
+                            <code>{{ row["ip_addresses"] }}</code>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">None found.</div>
+    {% endif %}
+</div>
+{% endblock %}

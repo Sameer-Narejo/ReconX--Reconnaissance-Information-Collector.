@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}ReconX - History{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Scan history</h1>
+
+{% if scans %}
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Domain</th>
+                    <th>Scan date (UTC)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in scans %}
+                <tr>
+                    <td>{{ scan["id"] }}</td>
+                    <td>{{ scan["domain"] }}</td>
+                    <td>{{ scan["scan_date"] }}</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="{{ url_for('view_scan', scan_id=scan['id']) }}">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    No scans saved yet. <a href="{{ url_for('home') }}">Run your first scan.</a>
+</div>
+{% endif %}
+{% endblock %}

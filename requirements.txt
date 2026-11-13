@@ -1,0 +1,6 @@
+dnspython
+python-whois
+requests
+flask
+reportlab
+pytest
